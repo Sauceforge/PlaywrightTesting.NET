@@ -25,8 +25,14 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      - name: Install Playwright CLI
+        run: dotnet tool install --global Microsoft.Playwright.CLI
+
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
       - name: Install Playwright Browsers
-        run: dotnet playwright install
+        run: playwright install
 
       - name: Test (NUnit)
         run: dotnet test Playwright.NUnit.Testing/Playwright.NUnit.Testing.csproj --configuration Release --no-build
