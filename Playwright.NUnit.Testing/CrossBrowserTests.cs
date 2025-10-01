@@ -18,7 +18,6 @@ public class CrossBrowserTests(BrowserKind kind) : TestBase(kind) {
     public async Task HomePage_Title_ContainsAppName() {
         await Page.GotoAsync("https://playwright.dev/dotnet/");
         var title = await Page.TitleAsync();
-        StringAssert.Contains("Playwright", title,
-            $"[{_kind}] title should contain 'Playwright'");
+        Assert.That(title.Contains("Playwright"));
     }
 }
