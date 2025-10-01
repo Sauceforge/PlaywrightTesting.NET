@@ -19,17 +19,17 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Install Playwright Browsers
-        run: dotnet tool install --global Microsoft.Playwright.CLI && playwright install
-
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      - name: Install Playwright Browsers
+        run: dotnet playwright install
+
       - name: Test (NUnit)
-        run: dotnet test --configuration Release --no-build --filter "FullyQualifiedName~Playwright.NUnit.Testing" && dotnet add Playwright.NUnit.Testing package Microsoft.Playwright
+        run: dotnet test Playwright.NUnit.Testing/Playwright.NUnit.Testing.csproj --configuration Release --no-build
 
       - name: Test (TUnit)
-        run: dotnet test --configuration Release --no-build --filter "FullyQualifiedName~Playwright.TUnit.Testing" && dotnet add Playwright.TUnit.Testing package Microsoft.Playwright
+        run: dotnet test Playwright.TUnit.Testing/Playwright.TUnit.Testing.csproj --configuration Release --no-build
