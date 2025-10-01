@@ -16,9 +16,12 @@ public class TestBase(BrowserKind kind) {
         _pw = await Microsoft.Playwright.Playwright.CreateAsync();
 
         var launch = new BrowserTypeLaunchOptions {
-            Headless = true,               // flip to false to watch the run
-            Args = ["--no-sandbox"]        // helpful in some CI agents
+            Headless = true
         };
+
+        if (_kind == BrowserKind.Chromium) {
+            launch.Args = ["--no-sandbox"];
+        }
 
         _browser = _kind switch {
             BrowserKind.Chromium => await _pw.Chromium.LaunchAsync(launch),
