@@ -36,7 +36,6 @@ jobs:
             libxrandr2 \
             libxinerama1 \
             libgl1 \
-            libegl1 \
             libdrm2 \
             libpango-1.0-0 \
             libcairo2 \
@@ -52,7 +51,9 @@ jobs:
             libhyphen0 \
             libmanette-0.2-0 \
             libgles2 \
-            libx264-164
+            libx264-164 \
+            libgstreamer-plugins-bad1.0-0 \
+            libflite1
 
       - name: Restore dependencies
         run: dotnet restore
