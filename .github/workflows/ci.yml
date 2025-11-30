@@ -74,4 +74,4 @@ jobs:
         run: dotnet test Playwright.NUnit.Testing/Playwright.NUnit.Testing.csproj --configuration Release --no-build
 
       - name: Test (TUnit)
-        run: dotnet test Playwright.TUnit.Testing/Playwright.TUnit.Testing.csproj --configuration Release --no-build
+        run: dotnet run --configuration Release --project Playwright.TUnit.Testing/Playwright.TUnit.Testing.csproj
