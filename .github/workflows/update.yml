@@ -73,11 +73,62 @@ jobs:
             dotnet package update --project "$p"
           done
 
-      - name: Build
-        run: dotnet build "${{ steps.sln.outputs.sln }}" -c Release --no-restore
+      - name: Install browser dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-0 \
+            libgtk-4-1 \
+            libgbm1 \
+            libnss3 \
+            libasound2t64 \
+            libxss1 \
+            libxtst6 \
+            libx11-xcb1 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libxinerama1 \
+            libgl1 \
+            libdrm2 \
+            libpango-1.0-0 \
+            libcairo2 \
+            libatspi2.0-0 \
+            libcups2 \
+            libwoff1 \
+            libvpx9 \
+            libevent-2.1-7 \
+            libopus0 \
+            libavif16 \
+            libharfbuzz-icu0 \
+            libsecret-1-0 \
+            libhyphen0 \
+            libmanette-0.2-0 \
+            libgles2 \
+            libx264-164 \
+            libgstreamer-plugins-bad1.0-0 \
+            libflite1
 
-      - name: Test
-        run: dotnet test "${{ steps.sln.outputs.sln }}" -c Release --no-build
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Install Playwright CLI
+        run: dotnet tool install --global Microsoft.Playwright.CLI
+
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Install Playwright Browsers
+        run: playwright install
+
+      - name: Test (NUnit)
+        run: dotnet test Playwright.NUnit.Testing/Playwright.NUnit.Testing.csproj --configuration Release --no-build
+
+      - name: Test (TUnit)
+        run: dotnet run --configuration Release --project Playwright.TUnit.Testing/Playwright.TUnit.Testing.csproj
 
       - name: Commit and push if there are changes
         shell: bash
