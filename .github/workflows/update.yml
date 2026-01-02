@@ -2,7 +2,6 @@
 
 on:
   schedule:
-    # Runs daily at 02:00 UTC (adjust as you like)
     - cron: "0 2 * * *"
   workflow_dispatch:
 
@@ -21,7 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Needed so we can push back using GITHUB_TOKEN
           persist-credentials: true
           fetch-depth: 0
 
@@ -30,9 +28,6 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Show .NET info
-        run: dotnet --info
-
       - name: Locate solution
         id: sln
         shell: bash
@@ -40,7 +35,7 @@ jobs:
           set -euo pipefail
           SLN="$(ls -1 *.sln 2>/dev/null | head -n 1 || true)"
           if [[ -z "${SLN}" ]]; then
-            SLN="$(find . -maxdepth 4 -name '*.sln' -print | head -n 1 || true)"
+            SLN="$(find . -maxdepth 5 -name '*.sln' -print | head -n 1 || true)"
           fi
           if [[ -z "${SLN}" ]]; then
             echo "No .sln file found."
@@ -52,10 +47,31 @@ jobs:
       - name: Restore
         run: dotnet restore "${{ steps.sln.outputs.sln }}"
 
-      - name: Update NuGet package references
-        # .NET 10+ command that updates PackageReference versions
-        # When no package names are provided, it attempts to update all packages in the project/solution.
-        run: dotnet package update --project "${{ steps.sln.outputs.sln }}"
+      - name: Update NuGet packages (per project)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Find csproj files (exclude obj/bin to avoid weirdness)
+          mapfile -t PROJECTS < <(find . -name '*.csproj' \
+            -not -path '*/bin/*' \
+            -not -path '*/obj/*' \
+            -print | sort)
+
+          if [[ ${#PROJECTS[@]} -eq 0 ]]; then
+            echo "No .csproj files found."
+            exit 1
+          fi
+
+          echo "Updating ${#PROJECTS[@]} projects:"
+          printf ' - %s\n' "${PROJECTS[@]}"
+
+          # Update each project individually (workaround for solution-level unsupported update)
+          for p in "${PROJECTS[@]}"; do
+            echo ""
+            echo "=== Updating: $p ==="
+            dotnet package update --project "$p"
+          done
 
       - name: Build
         run: dotnet build "${{ steps.sln.outputs.sln }}" -c Release --no-restore
