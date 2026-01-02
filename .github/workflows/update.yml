@@ -1,0 +1,92 @@
+﻿name: Update NuGet dependencies (daily)
+
+on:
+  schedule:
+    # Runs daily at 02:00 UTC (adjust as you like)
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-nuget-deps
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Needed so we can push back using GITHUB_TOKEN
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Show .NET info
+        run: dotnet --info
+
+      - name: Locate solution
+        id: sln
+        shell: bash
+        run: |
+          set -euo pipefail
+          SLN="$(ls -1 *.sln 2>/dev/null | head -n 1 || true)"
+          if [[ -z "${SLN}" ]]; then
+            SLN="$(find . -maxdepth 4 -name '*.sln' -print | head -n 1 || true)"
+          fi
+          if [[ -z "${SLN}" ]]; then
+            echo "No .sln file found."
+            exit 1
+          fi
+          echo "Found solution: ${SLN}"
+          echo "sln=${SLN}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore
+        run: dotnet restore "${{ steps.sln.outputs.sln }}"
+
+      - name: Update NuGet package references
+        # .NET 10+ command that updates PackageReference versions
+        # When no package names are provided, it attempts to update all packages in the project/solution.
+        run: dotnet package update --project "${{ steps.sln.outputs.sln }}"
+
+      - name: Build
+        run: dotnet build "${{ steps.sln.outputs.sln }}" -c Release --no-restore
+
+      - name: Test
+        run: dotnet test "${{ steps.sln.outputs.sln }}" -c Release --no-build
+
+      - name: Commit and push if there are changes
+        shell: bash
+        env:
+          GH_PAT: ${{ secrets.ACTIONS_PUSH_PAT }}
+        run: |
+          set -euo pipefail
+          git config user.name "agray"
+          git config user.email "agray@users.noreply.github.com"
+          export GIT_AUTHOR_NAME="agray"
+          export GIT_AUTHOR_EMAIL="agray@users.noreply.github.com"
+          export GIT_COMMITTER_NAME="agray"
+          export GIT_COMMITTER_EMAIL="agray@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "✅ No changes detected after running sync-package-versions.ps1"
+            exit 0
+          fi
+
+          git commit -m "Automated version sync"
+          git pull --rebase origin master
+
+          echo "🔐 Using PAT to push changes..."
+          git push "https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}" HEAD:master
+
+          echo "🚀 Changes committed and pushed to master via PAT."
