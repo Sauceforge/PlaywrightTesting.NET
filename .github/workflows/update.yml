@@ -44,8 +44,8 @@ jobs:
           echo "Found solution: ${SLN}"
           echo "sln=${SLN}" >> "$GITHUB_OUTPUT"
 
-      - name: Restore
-        run: dotnet restore "${{ steps.sln.outputs.sln }}"
+      #- name: Restore
+      #  run: dotnet restore "${{ steps.sln.outputs.sln }}"
 
       - name: Update NuGet packages (per project)
         shell: bash
@@ -151,9 +151,9 @@ jobs:
           fi
 
           git commit -m "Automated version sync"
-          git pull --rebase origin master
+          git pull --rebase origin main
 
           echo "🔐 Using PAT to push changes..."
-          git push "https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}" HEAD:master
+          git push "https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}" HEAD:main
 
-          echo "🚀 Changes committed and pushed to master via PAT."
+          echo "🚀 Changes committed and pushed to main via PAT."
