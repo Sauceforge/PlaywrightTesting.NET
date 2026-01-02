@@ -44,15 +44,11 @@ jobs:
           echo "Found solution: ${SLN}"
           echo "sln=${SLN}" >> "$GITHUB_OUTPUT"
 
-      #- name: Restore
-      #  run: dotnet restore "${{ steps.sln.outputs.sln }}"
-
-      - name: Update NuGet packages (per project)
+      - name: Update NuGet packages (per project, only if outdated)
         shell: bash
         run: |
           set -euo pipefail
 
-          # Find csproj files (exclude obj/bin to avoid weirdness)
           mapfile -t PROJECTS < <(find . -name '*.csproj' \
             -not -path '*/bin/*' \
             -not -path '*/obj/*' \
@@ -63,15 +59,32 @@ jobs:
             exit 1
           fi
 
-          echo "Updating ${#PROJECTS[@]} projects:"
+          echo "Checking ${#PROJECTS[@]} projects:"
           printf ' - %s\n' "${PROJECTS[@]}"
 
-          # Update each project individually (workaround for solution-level unsupported update)
+          any_updates=0
+
           for p in "${PROJECTS[@]}"; do
             echo ""
-            echo "=== Updating: $p ==="
-            dotnet package update --project "$p"
+            echo "=== Checking outdated: $p ==="
+
+            # If dotnet list fails for some reason, fail fast (real problem).
+            OUTDATED="$(dotnet list "$p" package --outdated)"
+            echo "$OUTDATED"
+
+            # Outdated table rows include '>' marker between requested and latest
+            if echo "$OUTDATED" | grep -q '>'; then
+              echo "Outdated packages detected -> updating $p"
+              dotnet package update --project "$p"
+              any_updates=1
+            else
+              echo "No outdated packages -> skipping update for $p"
+            fi
           done
+
+          if [[ $any_updates -eq 0 ]]; then
+            echo "✅ No package updates were needed."
+          fi
 
       - name: Install browser dependencies
         run: |
@@ -146,7 +159,7 @@ jobs:
           git add -A
 
           if git diff --cached --quiet; then
-            echo "✅ No changes detected after running sync-package-versions.ps1"
+            echo "✅ No changes detected."
             exit 0
           fi
 
