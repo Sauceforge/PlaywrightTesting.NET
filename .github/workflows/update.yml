@@ -90,53 +90,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            # core UI / graphics
-            libgtk-3-0 \
-            libgtk-4-1 \
-            libgdk-pixbuf2.0-0 \
-            libpango-1.0-0 \
-            libpangocairo-1.0-0 \
-            libcairo2 \
-            libgl1 \
-            libgles2 \
-            libdrm2 \
-            libgbm1 \
-            # audio / dbus / accessibility
-            libasound2 \
-            libatspi2.0-0 \
-            libdbus-1-3 \
-            # X / input
-            libx11-xcb1 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libxinerama1 \
-            libxtst6 \
-            libxss1 \
-            libxcb-dri3-0 \
-            libx264-164 \
-            # wayland
-            libwayland-server0 \
-            libwayland-client0 \
-            libxkbcommon0 \
-            # codecs / media
-            libvpx9 \
-            libavif16 \
-            libgstreamer-plugins-bad1.0-0 \
-            libopus0 \
-            # fonts / rendering / harfbuzz
-            fonts-liberation \
-            libharfbuzz-icu0 \
-            libhyphen0 \
-            # other runtime deps
-            libnss3 \
-            libcups2 \
-            libsecret-1-0 \
-            libwoff1 \
-            libevent-2.1-7 \
-            libflite1 \
-            libmanette-0.2-0 \
-            # PowerShell (pwsh) required by Playwright's install scripts
+            libgtk-3-0 libgtk-4-1 libgdk-pixbuf2.0-0 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgl1 libgles2 libdrm2 libgbm1 \
+            libasound2 libatspi2.0-0 libdbus-1-3 \
+            libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 libxinerama1 libxtst6 libxss1 libxcb-dri3-0 libx264-164 \
+            libwayland-server0 libwayland-client0 libxkbcommon0 \
+            libvpx9 libavif16 libgstreamer-plugins-bad1.0-0 libopus0 \
+            fonts-liberation libharfbuzz-icu0 libhyphen0 \
+            libnss3 libcups2 libsecret-1-0 libwoff1 libevent-2.1-7 libflite1 libmanette-0.2-0 \
             powershell
 
       - name: Restore dependencies
@@ -153,7 +113,6 @@ jobs:
 
       - name: Install Playwright system deps (via CLI)
         run: |
-          # Ensure Playwright CLI is on PATH, then let it install remaining OS deps
           playwright install-deps
 
       - name: Install Playwright Browsers
