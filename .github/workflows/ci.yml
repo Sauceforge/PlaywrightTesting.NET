@@ -22,42 +22,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Install browser dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-0 \
-            libgtk-4-1 \
-            libgbm1 \
-            libnss3 \
-            libasound2t64 \
-            libxss1 \
-            libxtst6 \
-            libx11-xcb1 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libxinerama1 \
-            libgl1 \
-            libdrm2 \
-            libpango-1.0-0 \
-            libcairo2 \
-            libatspi2.0-0 \
-            libcups2 \
-            libwoff1 \
-            libvpx9 \
-            libevent-2.1-7 \
-            libopus0 \
-            libavif16 \
-            libharfbuzz-icu0 \
-            libsecret-1-0 \
-            libhyphen0 \
-            libmanette-0.2-0 \
-            libgles2 \
-            libx264-164 \
-            libgstreamer-plugins-bad1.0-0 \
-            libflite1
-
       - name: Restore dependencies
         run: dotnet restore
 
@@ -69,6 +33,11 @@ jobs:
 
       - name: Add .NET tools to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      # ✅ This is what your runner is missing (e.g. libwayland-server0, etc).
+      # It installs the correct Linux deps for Playwright browsers on ubuntu-latest.
+      - name: Install Playwright OS dependencies
+        run: sudo env "PATH=$PATH" playwright install-deps
 
       - name: Install Playwright Browsers
         run: playwright install
