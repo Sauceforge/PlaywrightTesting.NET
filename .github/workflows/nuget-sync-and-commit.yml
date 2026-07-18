@@ -100,9 +100,9 @@ jobs:
           fi
 
           git commit -m "Automated NuGet package sync"
-          git pull --rebase origin master
+          git pull --rebase origin main
 
           echo "Pushing changes with GITHUB_TOKEN..."
-          git push origin HEAD:master
+          git push origin HEAD:main
 
-          echo "Changes committed and pushed to master."
+          echo "Changes committed and pushed to main."
